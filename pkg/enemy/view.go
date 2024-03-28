@@ -5,25 +5,25 @@ import (
 	"fyne.io/fyne/v2/canvas"
 )
 
-type IPlayerObserver interface {
+type IEnemyObserver interface {
 	UpdatePosition(x, y float32)
 }
 
-type PlayerView struct {
+type EnemyView struct {
 	Sprite *canvas.Image
 }
 
-func NewPlayerView(imagePath string, player IPlayer) *PlayerView {
+func NewEnemyView(imagePath string, enemy IEnemy) *EnemyView {
 	sprite := canvas.NewImageFromFile(imagePath)
 	sprite.FillMode = canvas.ImageFillOriginal
 	sprite.Resize(fyne.NewSize(50, 50))
-	sprite.Move(fyne.NewPos(player.Position()))
+	sprite.Move(fyne.NewPos(enemy.Position()))
 
-	return &PlayerView{
+	return &EnemyView{
 		Sprite: sprite,
 	}
 }
 
-func (v *PlayerView) UpdatePosition(x, y float32) {
+func (v *EnemyView) UpdatePosition(x, y float32) {
 	v.Sprite.Move(fyne.NewPos(x, y))
 }

@@ -2,7 +2,7 @@ package pkg
 
 import "fyne.io/fyne/v2"
 
-type IPlayerContoller interface {
+type IPlayerController interface {
 	HandleKey(e *fyne.KeyEvent)
 }
 
@@ -11,7 +11,7 @@ type PlayerController struct {
 	observer IPlayerObserver
 }
 
-func NewPlayerController(player IPlayer, observer IPlayerObserver) IPlayerContoller {
+func NewPlayerController(player IPlayer, observer IPlayerObserver) IPlayerController {
 	return &PlayerController{
 		player:   player,
 		observer: observer,
