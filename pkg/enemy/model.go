@@ -1,9 +1,11 @@
 package pkg
 
 type IEnemy interface {
+	IsAlive() bool
+	GetColumn() int
 	Position() (float32, float32)
 
-	Move(dx float32, direction int) (float32, float32)
+	Move(dx, dy float32, direction int) (float32, float32)
 }
 
 const (
@@ -13,32 +15,45 @@ const (
 )
 
 type Enemy struct {
-	Type   string
-	points int
-	x      float32
-	y      float32
+	Type    string
+	points  int
+	X       float32
+	Y       float32
+	Column  int
+	isAlive bool
 }
 
-func NewEnemy(startX, startY float32, points int, enemyType string) IEnemy {
+func NewEnemy(startX, startY float32, points, column int, enemyType string) IEnemy {
 	return &Enemy{
-		Type:   enemyType,
-		points: points,
-		x:      startX,
-		y:      startY,
+		Type:    enemyType,
+		points:  points,
+		X:       startX,
+		Y:       startY,
+		Column:  column,
+		isAlive: true,
 	}
 }
 
 func (p *Enemy) Position() (float32, float32) {
-	return p.x, p.y
+	return p.X, p.Y
 }
 
-func (p *Enemy) Move(dx float32, direction int) (float32, float32) {
+func (p *Enemy) IsAlive() bool {
+	return p.isAlive
+}
+
+func (p *Enemy) GetColumn() int {
+	return p.Column
+}
+
+func (p *Enemy) Move(dx, dy float32, direction int) (float32, float32) {
 	if direction == -1 {
-		p.x = p.x - dx
+		p.X = p.X - dx
 	}
 	if direction == 1 {
-		p.x = p.x + dx
+		p.X = p.X + dx
 	}
+	p.Y = p.Y + dy
 
-	return p.x, p.y
+	return p.X, p.Y
 }
