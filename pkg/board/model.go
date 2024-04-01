@@ -1,9 +1,10 @@
-package pkg
+package board
 
 import (
 	"sync"
 
 	"fyne.io/fyne/v2"
+	b "github.com/pstano1/go-vaders/pkg/bullet"
 	e "github.com/pstano1/go-vaders/pkg/enemy"
 )
 
@@ -11,6 +12,9 @@ type IBoard interface {
 	MoveEnemiesVertically(dy float32, direction int)
 	MoveEnemiesHorizontally(dx float32, direction int)
 	GetDirection(current int) int
+	MoveBullets(dy float32)
+	AppendBullet(bullet b.IBulletController)
+	CheckForHits()
 
 	edgeMostEnemyTouchesBoundary(direction int) bool
 }
@@ -21,6 +25,7 @@ type Board struct {
 	EdgeMostColumnLeft  int
 	EdgeMostColumnRight int
 	Enemies             []e.IEnemyController
+	Bullets             []b.IBulletController
 }
 
 func NewBoard(c *fyne.Container, width, height float32) IBoard {
@@ -55,10 +60,12 @@ func NewBoard(c *fyne.Container, width, height float32) IBoard {
 		c.Add(view.Sprite)
 	}
 
+	bullets := make([]b.IBulletController, 0)
 	return &Board{
 		Height:              height,
 		Width:               width,
 		Enemies:             enemies,
+		Bullets:             bullets,
 		EdgeMostColumnLeft:  0,
 		EdgeMostColumnRight: 10,
 	}
@@ -79,6 +86,21 @@ func (b *Board) MoveEnemiesHorizontally(dx float32, direction int) {
 
 	for _, enemy := range b.Enemies {
 		enemy.Move(dx, 0, direction, &wg)
+	}
+}
+
+func (b *Board) CheckForHits() {
+	for _, enemy := range b.Enemies {
+		for index, bullet := range b.Bullets {
+			x, y := bullet.Bullet().Position()
+			if enemy.CheckForCollision(x, y) {
+				bullet.Destroy()
+				b.Bullets = append(b.Bullets[:index], b.Bullets[index+1:]...)
+				index--
+				enemy.Destroy()
+				break
+			}
+		}
 	}
 }
 
@@ -108,4 +130,17 @@ func (b *Board) edgeMostEnemyTouchesBoundary(direction int) bool {
 		}
 	}
 	return false
+}
+
+func (b *Board) MoveBullets(dy float32) {
+	var wg sync.WaitGroup
+	wg.Add(len(b.Bullets))
+
+	for _, bullet := range b.Bullets {
+		bullet.Move(dy, &wg)
+	}
+}
+
+func (b *Board) AppendBullet(bullet b.IBulletController) {
+	b.Bullets = append(b.Bullets, bullet)
 }

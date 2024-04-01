@@ -1,10 +1,12 @@
-package pkg
+package enemy
 
 type IEnemy interface {
 	IsAlive() bool
 	GetColumn() int
 	Position() (float32, float32)
 
+	Destroy()
+	CheckForCollision(x, y float32) bool
 	Move(dx, dy float32, direction int) (float32, float32)
 }
 
@@ -34,26 +36,42 @@ func NewEnemy(startX, startY float32, points, column int, enemyType string) IEne
 	}
 }
 
-func (p *Enemy) Position() (float32, float32) {
-	return p.X, p.Y
+func (e *Enemy) Position() (float32, float32) {
+	return e.X, e.Y
 }
 
-func (p *Enemy) IsAlive() bool {
-	return p.isAlive
+func (e *Enemy) IsAlive() bool {
+	return e.isAlive
 }
 
-func (p *Enemy) GetColumn() int {
-	return p.Column
+func (e *Enemy) GetColumn() int {
+	return e.Column
 }
 
-func (p *Enemy) Move(dx, dy float32, direction int) (float32, float32) {
+func (e *Enemy) Move(dx, dy float32, direction int) (float32, float32) {
 	if direction == -1 {
-		p.X = p.X - dx
+		e.X = e.X - dx
 	}
 	if direction == 1 {
-		p.X = p.X + dx
+		e.X = e.X + dx
 	}
-	p.Y = p.Y + dy
+	e.Y = e.Y + dy
 
-	return p.X, p.Y
+	return e.X, e.Y
+}
+
+func (e *Enemy) Destroy() {
+	e.isAlive = false
+}
+
+func (e *Enemy) CheckForCollision(x, y float32) bool {
+	var isColliding bool
+	if !e.isAlive {
+		return false
+	}
+	if x >= e.X && x <= e.X+50 && e.Y <= y && e.Y+50 >= y {
+		isColliding = true
+	}
+
+	return isColliding
 }

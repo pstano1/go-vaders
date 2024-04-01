@@ -1,9 +1,12 @@
-package pkg
+package player
 
-import "fyne.io/fyne/v2"
+import (
+	"fyne.io/fyne/v2"
+	"github.com/pstano1/go-vaders/pkg/board"
+)
 
 type IPlayerController interface {
-	HandleKey(e *fyne.KeyEvent)
+	HandleKey(e *fyne.KeyEvent, b board.IBoard, container *fyne.Container)
 }
 
 type PlayerController struct {
@@ -18,12 +21,15 @@ func NewPlayerController(player IPlayer, observer IPlayerObserver) IPlayerContro
 	}
 }
 
-func (c *PlayerController) HandleKey(e *fyne.KeyEvent) {
+func (c *PlayerController) HandleKey(e *fyne.KeyEvent, b board.IBoard, container *fyne.Container) {
 	switch e.Name {
 	case fyne.KeyRight:
 		c.player.Move(10, 1)
 	case fyne.KeyLeft:
 		c.player.Move(10, -1)
+	case fyne.KeySpace:
+		v := c.player.Shoot(b.AppendBullet)
+		container.Add(v.Sprite)
 	}
 
 	c.observer.UpdatePosition(c.player.Position())

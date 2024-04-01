@@ -7,9 +7,8 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 
-	board "github.com/pstano1/go-vaders/pkg/board"
-	// enemy "github.com/pstano1/go-vaders/pkg/enemy"
-	player "github.com/pstano1/go-vaders/pkg/player"
+	"github.com/pstano1/go-vaders/pkg/board"
+	"github.com/pstano1/go-vaders/pkg/player"
 )
 
 func main() {
@@ -28,10 +27,12 @@ func main() {
 
 	w.SetContent(content)
 	w.Show()
-	w.Canvas().SetOnTypedKey(pc.HandleKey)
+	w.Canvas().SetOnTypedKey(func(e *fyne.KeyEvent) {
+		pc.HandleKey(e, b, content)
+	})
 
 	currentDirection := 1
-	ticker := time.Tick(1 * time.Second)
+	ticker := time.Tick(2 * time.Second)
 	go func() {
 		for {
 			<-ticker
@@ -43,6 +44,16 @@ func main() {
 			} else {
 				b.MoveEnemiesHorizontally(50, direction)
 			}
+		}
+	}()
+
+	bulletTicker := time.Tick(500 * time.Millisecond)
+	go func() {
+		for {
+			<-bulletTicker
+
+			b.MoveBullets(50)
+			b.CheckForHits()
 		}
 	}()
 

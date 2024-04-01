@@ -1,4 +1,4 @@
-package pkg
+package player
 
 import (
 	"fyne.io/fyne/v2"

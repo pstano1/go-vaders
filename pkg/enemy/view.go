@@ -1,4 +1,4 @@
-package pkg
+package enemy
 
 import (
 	"fyne.io/fyne/v2"
@@ -7,6 +7,7 @@ import (
 
 type IEnemyObserver interface {
 	UpdatePosition(x, y float32)
+	ChangeVisibility(hide bool)
 }
 
 type EnemyView struct {
@@ -26,4 +27,8 @@ func NewEnemyView(imagePath string, enemy IEnemy) *EnemyView {
 
 func (v *EnemyView) UpdatePosition(x, y float32) {
 	v.Sprite.Move(fyne.NewPos(x, y))
+}
+
+func (v *EnemyView) ChangeVisibility(hide bool) {
+	v.Sprite.Hidden = hide
 }
