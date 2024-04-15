@@ -24,9 +24,16 @@ func NewPlayerController(player IPlayer, observer IPlayerObserver) IPlayerContro
 func (c *PlayerController) HandleKey(e *fyne.KeyEvent, b board.IBoard, container *fyne.Container) {
 	switch e.Name {
 	case fyne.KeyRight:
-		c.player.Move(10, 1)
+		w, _ := b.Size()
+		x, _ := c.player.Position()
+		if x < w-10 {
+			c.player.Move(10, 1)
+		}
 	case fyne.KeyLeft:
-		c.player.Move(10, -1)
+		x, _ := c.player.Position()
+		if x > 10 {
+			c.player.Move(10, -1)
+		}
 	case fyne.KeySpace:
 		v := c.player.Shoot(b.AppendBullet)
 		container.Add(v.Sprite)

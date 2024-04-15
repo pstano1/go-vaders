@@ -4,6 +4,7 @@ import "github.com/pstano1/go-vaders/internal/bullet"
 
 type IPlayer interface {
 	Position() (float32, float32)
+	Lifes() int
 
 	Shoot(appendBullet func(bullet.IBulletController)) *bullet.BulletView
 	Move(dx float32, direction int) (float32, float32)
@@ -40,9 +41,13 @@ func (p *Player) Move(dx float32, direction int) (float32, float32) {
 
 func (p *Player) Shoot(appendBullet func(bullet.IBulletController)) *bullet.BulletView {
 	x, y := p.Position()
-	b := bullet.NewBullet(x+23, y)
+	b := bullet.NewBullet(x+23+70, y)
 	v := bullet.NewBulletView("assets/bullet.png", b)
 	appendBullet(bullet.NewBulletController(b, v))
 
 	return v
+}
+
+func (p *Player) Lifes() int {
+	return p.lifes
 }

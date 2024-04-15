@@ -13,6 +13,9 @@ import (
 )
 
 type IBoard interface {
+	Size() (float32, float32)
+	GetScore() int
+
 	MoveEnemiesVertically(dy float32, direction int)
 	MoveEnemiesHorizontally(dx float32, direction int)
 	GetDirection(current int) int
@@ -165,20 +168,29 @@ func (b *Board) AppendBullet(bullet b.IBulletController) {
 func (b *Board) CreateGameOverOverlay() {
 	gameOver := canvas.NewText("GAME OVER", color.White)
 	gameOver.Alignment = fyne.TextAlignCenter
-	gameOver.TextSize = 32
+	gameOver.TextSize = 48
 	score := canvas.NewText(fmt.Sprintf("Your score is: %d", b.Score), color.White)
 	score.Alignment = fyne.TextAlignCenter
+	score.TextSize = 24
 
 	overlayBackground := canvas.NewRectangle(color.Black)
 	overlayBackground.Resize(fyne.NewSize(b.Width, b.Height))
 	overlayBackground.FillColor = color.RGBA{R: 0, G: 0, B: 0, A: 127}
 
 	UI := container.NewVBox(gameOver, score)
-	UI.Move(fyne.NewPos(b.Width/2, b.Height/2))
+	UI.Move(fyne.NewPos(b.Width/2, 0))
 	overlayContent := container.NewWithoutLayout()
 	overlayContent.Resize(overlayBackground.Size())
 	overlayContent.Move(fyne.NewPos(0, 0))
 	overlayContent.Add(overlayBackground)
 	overlayContent.Add(UI)
 	b.content.Add(overlayContent)
+}
+
+func (b *Board) Size() (float32, float32) {
+	return b.Width, b.Height
+}
+
+func (b *Board) GetScore() int {
+	return b.Score
 }

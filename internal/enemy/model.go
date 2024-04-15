@@ -65,7 +65,7 @@ func (e *Enemy) CheckForCollision(x, y float32) bool {
 	if !e.isAlive {
 		return false
 	}
-	if x >= e.X && x <= e.X+50 && e.Y <= y && e.Y+50 >= y {
+	if x >= e.X+70 && x <= e.X+50+70 && e.Y <= y && e.Y+50+70 >= y {
 		isColliding = true
 	}
 
