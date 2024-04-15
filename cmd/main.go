@@ -7,8 +7,8 @@ import (
 	"fyne.io/fyne/v2/app"
 	"fyne.io/fyne/v2/container"
 
-	"github.com/pstano1/go-vaders/pkg/board"
-	"github.com/pstano1/go-vaders/pkg/player"
+	"github.com/pstano1/go-vaders/internal/board"
+	"github.com/pstano1/go-vaders/internal/player"
 )
 
 func main() {
@@ -32,25 +32,31 @@ func main() {
 	})
 
 	currentDirection := 1
-	ticker := time.Tick(2 * time.Second)
+	ticker := make(chan struct{})
+	bulletTicker := make(chan struct{})
 	go func() {
 		for {
-			<-ticker
+			<-time.After(2 * time.Second)
 
 			direction := b.GetDirection(currentDirection)
 			if direction != currentDirection {
 				b.MoveEnemiesVertically(50, direction)
 				currentDirection = direction
+				if ok := b.EdgeMostEnemyReachesPlayer(); ok {
+					close(ticker)
+					close(bulletTicker)
+					b.CreateGameOverOverlay()
+					break
+				}
 			} else {
 				b.MoveEnemiesHorizontally(50, direction)
 			}
 		}
 	}()
 
-	bulletTicker := time.Tick(500 * time.Millisecond)
 	go func() {
 		for {
-			<-bulletTicker
+			<-time.After(200 * time.Millisecond)
 
 			b.MoveBullets(50)
 			b.CheckForHits()

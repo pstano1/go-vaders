@@ -2,8 +2,8 @@ package enemy
 
 type IEnemy interface {
 	IsAlive() bool
-	GetColumn() int
 	Position() (float32, float32)
+	Points() int
 
 	Destroy()
 	CheckForCollision(x, y float32) bool
@@ -44,10 +44,6 @@ func (e *Enemy) IsAlive() bool {
 	return e.isAlive
 }
 
-func (e *Enemy) GetColumn() int {
-	return e.Column
-}
-
 func (e *Enemy) Move(dx, dy float32, direction int) (float32, float32) {
 	if direction == -1 {
 		e.X = e.X - dx
@@ -74,4 +70,8 @@ func (e *Enemy) CheckForCollision(x, y float32) bool {
 	}
 
 	return isColliding
+}
+
+func (e *Enemy) Points() int {
+	return e.points
 }

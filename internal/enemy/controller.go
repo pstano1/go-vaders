@@ -5,7 +5,7 @@ import "sync"
 type IEnemyController interface {
 	Enemy() IEnemy
 
-	Destroy()
+	Destroy() int
 	CheckForCollision(x, y float32) bool
 	Move(dx, dy float32, direction int, wg *sync.WaitGroup)
 }
@@ -33,9 +33,10 @@ func (c *EnemyController) Move(dx, dy float32, direction int, wg *sync.WaitGroup
 	c.observer.UpdatePosition(c.enemy.Position())
 }
 
-func (c *EnemyController) Destroy() {
+func (c *EnemyController) Destroy() int {
 	c.enemy.Destroy()
 	c.observer.ChangeVisibility(true)
+	return c.enemy.Points()
 }
 
 func (c *EnemyController) CheckForCollision(x, y float32) bool {

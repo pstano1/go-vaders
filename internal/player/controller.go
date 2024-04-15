@@ -2,7 +2,7 @@ package player
 
 import (
 	"fyne.io/fyne/v2"
-	"github.com/pstano1/go-vaders/pkg/board"
+	"github.com/pstano1/go-vaders/internal/board"
 )
 
 type IPlayerController interface {
