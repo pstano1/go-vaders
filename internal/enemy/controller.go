@@ -1,10 +1,15 @@
 package enemy
 
-import "sync"
+import (
+	"sync"
+
+	"github.com/pstano1/go-vaders/internal/bullet"
+)
 
 type IEnemyController interface {
 	Enemy() IEnemy
 
+	Shoot() (bullet.IBulletController, *bullet.BulletView)
 	Destroy() int
 	CheckForCollision(x, y float32) bool
 	Move(dx, dy float32, direction int, wg *sync.WaitGroup)
@@ -41,4 +46,8 @@ func (c *EnemyController) Destroy() int {
 
 func (c *EnemyController) CheckForCollision(x, y float32) bool {
 	return c.enemy.CheckForCollision(x, y)
+}
+
+func (c *EnemyController) Shoot() (bullet.IBulletController, *bullet.BulletView) {
+	return c.enemy.Shoot()
 }

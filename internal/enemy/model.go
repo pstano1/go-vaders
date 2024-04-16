@@ -1,5 +1,7 @@
 package enemy
 
+import "github.com/pstano1/go-vaders/internal/bullet"
+
 type IEnemy interface {
 	IsAlive() bool
 	Position() (float32, float32)
@@ -7,6 +9,7 @@ type IEnemy interface {
 
 	Destroy()
 	CheckForCollision(x, y float32) bool
+	Shoot() (bullet.IBulletController, *bullet.BulletView)
 	Move(dx, dy float32, direction int) (float32, float32)
 }
 
@@ -74,4 +77,13 @@ func (e *Enemy) CheckForCollision(x, y float32) bool {
 
 func (e *Enemy) Points() int {
 	return e.points
+}
+
+func (e *Enemy) Shoot() (bullet.IBulletController, *bullet.BulletView) {
+	x, y := e.Position()
+	b := bullet.NewBullet(x+23+70, y, bullet.EnemysBullet)
+	v := bullet.NewBulletView("assets/bullet.png", b)
+	c := bullet.NewBulletController(b, v)
+
+	return c, v
 }

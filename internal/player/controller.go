@@ -2,11 +2,14 @@ package player
 
 import (
 	"fyne.io/fyne/v2"
-	"github.com/pstano1/go-vaders/internal/board"
+	"github.com/pstano1/go-vaders/internal/bullet"
 )
 
 type IPlayerController interface {
-	HandleKey(e *fyne.KeyEvent, b board.IBoard, container *fyne.Container)
+	CheckForCollision(x, y float32) bool
+	UpdateLifes(difference int)
+	Move(direction fyne.KeyName, width float32)
+	Shoot() (bullet.IBulletController, *bullet.BulletView)
 }
 
 type PlayerController struct {
@@ -21,23 +24,42 @@ func NewPlayerController(player IPlayer, observer IPlayerObserver) IPlayerContro
 	}
 }
 
-func (c *PlayerController) HandleKey(e *fyne.KeyEvent, b board.IBoard, container *fyne.Container) {
-	switch e.Name {
-	case fyne.KeyRight:
-		w, _ := b.Size()
+func (p *PlayerController) CheckForCollision(x, y float32) bool {
+	isColliding := p.player.CheckForCollision(x, y)
+	if isColliding {
+		p.player.UpdateLifes(p.player.Lifes() - 1)
+		p.player.ResetPosition()
+	}
+	return isColliding
+}
+
+func (c *PlayerController) Move(direction fyne.KeyName, width float32) {
+	switch direction {
+	case "Right":
 		x, _ := c.player.Position()
-		if x < w-10 {
+		if x < width-10 {
 			c.player.Move(10, 1)
 		}
-	case fyne.KeyLeft:
+	case "Left":
 		x, _ := c.player.Position()
 		if x > 10 {
 			c.player.Move(10, -1)
 		}
-	case fyne.KeySpace:
-		v := c.player.Shoot(b.AppendBullet)
-		container.Add(v.Sprite)
 	}
 
 	c.observer.UpdatePosition(c.player.Position())
+}
+
+func (c *PlayerController) Shoot() (bullet.IBulletController, *bullet.BulletView) {
+	return c.player.Shoot()
+}
+
+func (c *PlayerController) UpdateLifes(difference int) {
+	newLives := c.player.Lifes() + difference
+	if newLives < 0 {
+		newLives = 0
+	} else if newLives > 3 {
+		newLives = 3
+	}
+	c.player.UpdateLifes(newLives)
 }

@@ -3,13 +3,15 @@ package board
 import (
 	"fmt"
 	"image/color"
+	"math/rand"
 	"sync"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	b "github.com/pstano1/go-vaders/internal/bullet"
+	bt "github.com/pstano1/go-vaders/internal/bullet"
 	e "github.com/pstano1/go-vaders/internal/enemy"
+	p "github.com/pstano1/go-vaders/internal/player"
 )
 
 type IBoard interface {
@@ -20,12 +22,14 @@ type IBoard interface {
 	MoveEnemiesHorizontally(dx float32, direction int)
 	GetDirection(current int) int
 	MoveBullets(dy float32)
-	AppendBullet(bullet b.IBulletController)
+	AppendBullet(bullet bt.IBulletController)
+	MakeEnemiesShoot()
 	CheckForHits()
 
 	edgeMostEnemyTouchesBoundary(direction int) bool
 	EdgeMostEnemyReachesPlayer() bool
 	CreateGameOverOverlay()
+	HandleInput(e *fyne.KeyEvent, container *fyne.Container)
 }
 
 type Board struct {
@@ -33,11 +37,12 @@ type Board struct {
 	Width   float32
 	Score   int
 	content *fyne.Container
+	Player  p.IPlayerController
 	Enemies []e.IEnemyController
-	Bullets []b.IBulletController
+	Bullets []bt.IBulletController
 }
 
-func NewBoard(c *fyne.Container, width, height float32) IBoard {
+func NewBoard(c *fyne.Container, pc p.IPlayerController, width, height float32) IBoard {
 	enemies := make([]e.IEnemyController, 55)
 	red := 22
 	yellow := 22
@@ -69,12 +74,13 @@ func NewBoard(c *fyne.Container, width, height float32) IBoard {
 		c.Add(view.Sprite)
 	}
 
-	bullets := make([]b.IBulletController, 0)
+	bullets := make([]bt.IBulletController, 0)
 	return &Board{
 		Height:  height,
 		Width:   width,
 		Score:   0,
 		content: c,
+		Player:  pc,
 		Enemies: enemies,
 		Bullets: bullets,
 	}
@@ -102,11 +108,21 @@ func (b *Board) CheckForHits() {
 	for _, enemy := range b.Enemies {
 		for index, bullet := range b.Bullets {
 			x, y := bullet.Bullet().Position()
-			if enemy.CheckForCollision(x, y) {
+			if bullet.Bullet().Owner() == bt.PlayersBullet {
+				if enemy.CheckForCollision(x, y) {
+					bullet.Destroy()
+					b.Bullets = append(b.Bullets[:index], b.Bullets[index+1:]...)
+					index--
+					b.Score += enemy.Destroy()
+					break
+				}
+				continue
+			}
+			if b.Player.CheckForCollision(x, y) {
 				bullet.Destroy()
 				b.Bullets = append(b.Bullets[:index], b.Bullets[index+1:]...)
 				index--
-				b.Score += enemy.Destroy()
+				b.Player.UpdateLifes(-1)
 				break
 			}
 		}
@@ -157,11 +173,15 @@ func (b *Board) MoveBullets(dy float32) {
 	wg.Add(len(b.Bullets))
 
 	for _, bullet := range b.Bullets {
-		bullet.Move(dy, &wg)
+		if bullet.Bullet().Owner() == bt.PlayersBullet {
+			bullet.Move(dy, &wg)
+			continue
+		}
+		bullet.Move(-dy, &wg)
 	}
 }
 
-func (b *Board) AppendBullet(bullet b.IBulletController) {
+func (b *Board) AppendBullet(bullet bt.IBulletController) {
 	b.Bullets = append(b.Bullets, bullet)
 }
 
@@ -193,4 +213,37 @@ func (b *Board) Size() (float32, float32) {
 
 func (b *Board) GetScore() int {
 	return b.Score
+}
+
+func (b *Board) HandleInput(e *fyne.KeyEvent, container *fyne.Container) {
+	switch e.Name {
+	case fyne.KeyRight:
+		b.Player.Move(fyne.KeyRight, b.Width)
+	case fyne.KeyLeft:
+		b.Player.Move(fyne.KeyLeft, b.Width)
+	case fyne.KeySpace:
+		c, v := b.Player.Shoot()
+		b.AppendBullet(c)
+		container.Add(v.Sprite)
+	}
+}
+
+func (b *Board) MakeEnemiesShoot() {
+	var wg sync.WaitGroup
+	wg.Add(len(b.Enemies))
+
+	for _, enemy := range b.Enemies {
+		if rand.Float64() < 0.05 {
+			go func(e e.IEnemyController) {
+				defer wg.Done()
+				c, v := e.Shoot()
+				b.AppendBullet(c)
+				b.content.Add(v.Sprite)
+			}(enemy)
+		} else {
+			wg.Done()
+		}
+	}
+
+	wg.Wait()
 }

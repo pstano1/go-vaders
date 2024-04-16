@@ -25,7 +25,7 @@ func main() {
 	v := player.NewPlayerView("assets/player.png", p)
 	pc := player.NewPlayerController(p, v)
 
-	b := board.NewBoard(boardContainer, 800, 600)
+	b := board.NewBoard(boardContainer, pc, 800, 600)
 
 	boardContainer.Add(v.Sprite)
 
@@ -43,7 +43,7 @@ func main() {
 	w.SetContent(content)
 	w.Show()
 	w.Canvas().SetOnTypedKey(func(e *fyne.KeyEvent) {
-		pc.HandleKey(e, b, content)
+		b.HandleInput(e, content)
 	})
 
 	currentDirection := 1
@@ -65,6 +65,7 @@ func main() {
 				}
 			} else {
 				b.MoveEnemiesHorizontally(50, direction)
+				b.MakeEnemiesShoot()
 			}
 		}
 	}()
@@ -78,6 +79,8 @@ func main() {
 
 			score = b.GetScore()
 			updateScore(scoreText, score)
+			lifes = p.Lifes()
+			updateLifes(lifesText, lifes)
 		}
 	}()
 
@@ -90,7 +93,8 @@ func updateScore(sc *canvas.Text, newValue int) {
 }
 
 func updateLifes(lf *canvas.Text, newValue int) {
-	return
+	lf.Text = fmt.Sprintf("lifes: %d", newValue)
+	lf.Refresh()
 }
 
 func createBoard() *fyne.Container {

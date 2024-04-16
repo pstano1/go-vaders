@@ -6,8 +6,11 @@ type IPlayer interface {
 	Position() (float32, float32)
 	Lifes() int
 
-	Shoot(appendBullet func(bullet.IBulletController)) *bullet.BulletView
+	Shoot() (bullet.IBulletController, *bullet.BulletView)
 	Move(dx float32, direction int) (float32, float32)
+	CheckForCollision(x, y float32) bool
+	UpdateLifes(newValue int)
+	ResetPosition()
 }
 
 type Player struct {
@@ -39,15 +42,31 @@ func (p *Player) Move(dx float32, direction int) (float32, float32) {
 	return p.x, p.y
 }
 
-func (p *Player) Shoot(appendBullet func(bullet.IBulletController)) *bullet.BulletView {
+func (p *Player) Shoot() (bullet.IBulletController, *bullet.BulletView) {
 	x, y := p.Position()
-	b := bullet.NewBullet(x+23+70, y)
+	b := bullet.NewBullet(x+23+70, y, bullet.PlayersBullet)
 	v := bullet.NewBulletView("assets/bullet.png", b)
-	appendBullet(bullet.NewBulletController(b, v))
+	c := bullet.NewBulletController(b, v)
 
-	return v
+	return c, v
 }
 
 func (p *Player) Lifes() int {
 	return p.lifes
+}
+
+func (p *Player) CheckForCollision(x, y float32) bool {
+	if x >= p.x && x <= p.x+50 && p.y <= y && p.y >= y {
+		return true
+	}
+
+	return false
+}
+
+func (p *Player) UpdateLifes(newValue int) {
+	p.lifes = newValue
+}
+
+func (p *Player) ResetPosition() {
+	p.x = 375
 }
