@@ -28,6 +28,7 @@ type IBoard interface {
 
 	edgeMostEnemyTouchesBoundary(direction int) bool
 	EdgeMostEnemyReachesPlayer() bool
+	IsPlayerAlive() bool
 	CreateGameOverOverlay()
 	HandleInput(e *fyne.KeyEvent, container *fyne.Container)
 }
@@ -194,7 +195,7 @@ func (b *Board) CreateGameOverOverlay() {
 	score.TextSize = 24
 
 	overlayBackground := canvas.NewRectangle(color.Black)
-	overlayBackground.Resize(fyne.NewSize(b.Width, b.Height))
+	overlayBackground.Resize(fyne.NewSize(b.Width+60, b.Height))
 	overlayBackground.FillColor = color.RGBA{R: 0, G: 0, B: 0, A: 127}
 
 	UI := container.NewVBox(gameOver, score)
@@ -246,4 +247,8 @@ func (b *Board) MakeEnemiesShoot() {
 	}
 
 	wg.Wait()
+}
+
+func (b *Board) IsPlayerAlive() bool {
+	return b.Player.GetLifes() != 0
 }

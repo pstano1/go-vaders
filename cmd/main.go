@@ -63,6 +63,12 @@ func main() {
 					b.CreateGameOverOverlay()
 					break
 				}
+				if ok := b.IsPlayerAlive(); !ok {
+					close(ticker)
+					close(bulletTicker)
+					b.CreateGameOverOverlay()
+					break
+				}
 			} else {
 				b.MoveEnemiesHorizontally(50, direction)
 				b.MakeEnemiesShoot()

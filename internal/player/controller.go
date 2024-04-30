@@ -10,6 +10,8 @@ type IPlayerController interface {
 	UpdateLifes(difference int)
 	Move(direction fyne.KeyName, width float32)
 	Shoot() (bullet.IBulletController, *bullet.BulletView)
+
+	GetLifes() int
 }
 
 type PlayerController struct {
@@ -62,4 +64,8 @@ func (c *PlayerController) UpdateLifes(difference int) {
 		newLives = 3
 	}
 	c.player.UpdateLifes(newLives)
+}
+
+func (c *PlayerController) GetLifes() int {
+	return c.player.Lifes()
 }
