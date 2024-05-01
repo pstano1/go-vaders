@@ -25,6 +25,7 @@ type IBoard interface {
 	AppendBullet(bullet bt.IBulletController)
 	MakeEnemiesShoot()
 	CheckForHits()
+	clearEnemiesBullets()
 
 	edgeMostEnemyTouchesBoundary(direction int) bool
 	EdgeMostEnemyReachesPlayer() bool
@@ -109,21 +110,19 @@ func (b *Board) CheckForHits() {
 	for _, enemy := range b.Enemies {
 		for index, bullet := range b.Bullets {
 			x, y := bullet.Bullet().Position()
-			if bullet.Bullet().Owner() == bt.PlayersBullet {
-				if enemy.CheckForCollision(x, y) {
-					bullet.Destroy()
-					b.Bullets = append(b.Bullets[:index], b.Bullets[index+1:]...)
-					index--
-					b.Score += enemy.Destroy()
-					break
-				}
-				continue
+			if bullet.Bullet().Owner() == bt.PlayersBullet && enemy.CheckForCollision(x, y) {
+				bullet.Destroy()
+				b.Bullets = append(b.Bullets[:index], b.Bullets[index+1:]...)
+				index--
+				b.Score += enemy.Destroy()
+				break
 			}
 			if b.Player.CheckForCollision(x, y) {
 				bullet.Destroy()
 				b.Bullets = append(b.Bullets[:index], b.Bullets[index+1:]...)
 				index--
-				b.Player.UpdateLifes(-1)
+				b.Player.UpdateLifes(b.Player.GetLifes() - 1)
+				b.clearEnemiesBullets()
 				break
 			}
 		}
@@ -234,7 +233,7 @@ func (b *Board) MakeEnemiesShoot() {
 	wg.Add(len(b.Enemies))
 
 	for _, enemy := range b.Enemies {
-		if rand.Float64() < 0.05 {
+		if rand.Float64() < 0.05 && enemy.Enemy().IsAlive() {
 			go func(e e.IEnemyController) {
 				defer wg.Done()
 				c, v := e.Shoot()
@@ -251,4 +250,16 @@ func (b *Board) MakeEnemiesShoot() {
 
 func (b *Board) IsPlayerAlive() bool {
 	return b.Player.GetLifes() != 0
+}
+
+func (b *Board) clearEnemiesBullets() {
+	var bullets []bt.IBulletController
+	for _, bullet := range b.Bullets {
+		if bullet.Bullet().Owner() == bt.PlayersBullet {
+			bullets = append(bullets, bullet)
+			continue
+		}
+		bullet.Destroy()
+	}
+	b.Bullets = bullets
 }

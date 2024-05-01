@@ -29,8 +29,8 @@ func NewPlayerController(player IPlayer, observer IPlayerObserver) IPlayerContro
 func (p *PlayerController) CheckForCollision(x, y float32) bool {
 	isColliding := p.player.CheckForCollision(x, y)
 	if isColliding {
-		p.player.UpdateLifes(p.player.Lifes() - 1)
 		p.player.ResetPosition()
+		p.observer.UpdatePosition(p.player.Position())
 	}
 	return isColliding
 }
@@ -56,14 +56,8 @@ func (c *PlayerController) Shoot() (bullet.IBulletController, *bullet.BulletView
 	return c.player.Shoot()
 }
 
-func (c *PlayerController) UpdateLifes(difference int) {
-	newLives := c.player.Lifes() + difference
-	if newLives < 0 {
-		newLives = 0
-	} else if newLives > 3 {
-		newLives = 3
-	}
-	c.player.UpdateLifes(newLives)
+func (c *PlayerController) UpdateLifes(newValue int) {
+	c.player.UpdateLifes(newValue)
 }
 
 func (c *PlayerController) GetLifes() int {

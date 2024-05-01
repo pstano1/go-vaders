@@ -51,42 +51,49 @@ func main() {
 	bulletTicker := make(chan struct{})
 	go func() {
 		for {
-			<-time.After(2 * time.Second)
-
-			direction := b.GetDirection(currentDirection)
-			if direction != currentDirection {
-				b.MoveEnemiesVertically(50, direction)
-				currentDirection = direction
-				if ok := b.EdgeMostEnemyReachesPlayer(); ok {
-					close(ticker)
-					close(bulletTicker)
-					b.CreateGameOverOverlay()
-					break
+			select {
+			case <-ticker:
+				return
+			case <-time.After(2 * time.Second):
+				direction := b.GetDirection(currentDirection)
+				if direction != currentDirection {
+					b.MoveEnemiesVertically(50, direction)
+					currentDirection = direction
+					if ok := b.EdgeMostEnemyReachesPlayer(); ok {
+						close(ticker)
+						close(bulletTicker)
+						b.CreateGameOverOverlay()
+						return
+					}
+				} else {
+					b.MoveEnemiesHorizontally(50, direction)
+					b.MakeEnemiesShoot()
 				}
-				if ok := b.IsPlayerAlive(); !ok {
-					close(ticker)
-					close(bulletTicker)
-					b.CreateGameOverOverlay()
-					break
-				}
-			} else {
-				b.MoveEnemiesHorizontally(50, direction)
-				b.MakeEnemiesShoot()
 			}
 		}
 	}()
 
 	go func() {
 		for {
-			<-time.After(200 * time.Millisecond)
+			select {
+			case <-bulletTicker:
+				return
+			case <-time.After(200 * time.Millisecond):
 
-			b.MoveBullets(50)
-			b.CheckForHits()
+				b.MoveBullets(50)
+				b.CheckForHits()
 
-			score = b.GetScore()
-			updateScore(scoreText, score)
-			lifes = p.Lifes()
-			updateLifes(lifesText, lifes)
+				score = b.GetScore()
+				updateScore(scoreText, score)
+				lifes = p.Lifes()
+				updateLifes(lifesText, lifes)
+				if lifes == 0 {
+					close(ticker)
+					close(bulletTicker)
+					b.CreateGameOverOverlay()
+					return
+				}
+			}
 		}
 	}()
 
